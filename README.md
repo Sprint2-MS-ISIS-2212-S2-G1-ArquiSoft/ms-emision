@@ -40,8 +40,9 @@ docker compose -f docker-compose.local.yml down
 
 ## Endpoints de Negocio y Simulación
 
-- `POST /polizas` — Emite una póliza `{ cotizacionId, clienteId, suscripcionId? }` (`201`, devuelve header `X-Emision-Replica`).
+- `POST /polizas` — Emite una póliza `{ cotizacionId, clienteId, suscripcionId? }` (`201`, devuelve header `X-Emision-Replica`). Requiere el header `X-Socio-Id` (`400` si falta o no es UUID).
 - `GET /polizas` — Lista pólizas (filtros opcionales `?clienteId=` o `?numeroPoliza=`).
+- `GET /polizas/numero/:numeroPoliza` — Consulta una póliza por su número (ej. `POL-001`).
 - `GET /polizas/:id` — Consulta una póliza por UUID o por `numeroPoliza`.
 - `GET /metricas` — Métricas de emisiones exitosas, idempotentes, en vuelo y estado de apagado.
 - `GET /simulacion/estado` — Estado actual de caos/simulación de la réplica.

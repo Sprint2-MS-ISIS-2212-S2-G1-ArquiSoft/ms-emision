@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -9,6 +10,7 @@ import {
   Res,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { isUUID } from 'class-validator';
 import type { Response } from 'express';
 import * as os from 'node:os';
 import { EmitirPolizaDto } from './dtos/emitir-poliza.dto';
@@ -30,8 +32,12 @@ export class EmisionController {
   async emitir(
     @Body() dto: EmitirPolizaDto,
     @Headers('x-idempotency-key') idempotencyKey: string | undefined,
+    @Headers('x-socio-id') socioId: string | undefined,
     @Res({ passthrough: true }) res: Response,
   ): Promise<Poliza> {
+    if (!socioId || !isUUID(socioId)) {
+      throw new BadRequestException('Header X-Socio-Id requerido');
+    }
     res.setHeader('X-Emision-Replica', this.replicaId);
     return this.emisionService.emitirPoliza(dto, idempotencyKey);
   }
@@ -42,6 +48,13 @@ export class EmisionController {
     @Query('numeroPoliza') numeroPoliza?: string,
   ): Promise<Poliza[]> {
     return this.emisionService.listarPolizas(clienteId, numeroPoliza);
+  }
+
+  @Get('polizas/numero/:numeroPoliza')
+  obtenerPorNumero(
+    @Param('numeroPoliza') numeroPoliza: string,
+  ): Promise<Poliza> {
+    return this.emisionService.obtenerPoliza(numeroPoliza);
   }
 
   @Get('polizas/:id')
