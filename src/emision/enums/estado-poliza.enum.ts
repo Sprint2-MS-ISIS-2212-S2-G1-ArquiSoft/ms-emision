@@ -1,0 +1,6 @@
+export enum EstadoPoliza {
+  EMITIDA = 'EMITIDA',
+  ACTIVA = 'ACTIVA',
+  EN_RENOVACION = 'EN_RENOVACION',
+  CANCELADA = 'CANCELADA',
+}

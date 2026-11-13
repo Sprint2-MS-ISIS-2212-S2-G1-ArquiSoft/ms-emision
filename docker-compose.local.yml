@@ -1,0 +1,52 @@
+# Solo para desarrollo local. El despliegue real (EKS / EC2) vive en los
+# manifiestos de infraestructura del experimento.
+services:
+  emision:
+    build: .
+    container_name: emision
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      EMISION_NAME: emision
+      REPLICA_ID: emision-local-1
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: emision
+      DB_PASSWORD: emision
+      DB_NAME: emision
+      DB_LOGGING: "false"
+      DB_SYNCHRONIZE: "true"
+      RESILIENCIA_HABILITADA: "${RESILIENCIA_HABILITADA:-true}"
+      SHUTDOWN_DRAIN_MS: "${SHUTDOWN_DRAIN_MS:-5000}"
+      READINESS_DB_TIMEOUT_MS: "${READINESS_DB_TIMEOUT_MS:-1500}"
+      SIMULAR_MODO: "${SIMULAR_MODO:-normal}"
+      SIMULAR_LATENCIA_MS: "${SIMULAR_LATENCIA_MS:-0}"
+      SIMULACION_ADMIN_HABILITADA: "${SIMULACION_ADMIN_HABILITADA:-true}"
+    ports:
+      - "3008:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: emision-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: emision
+      POSTGRES_USER: emision
+      POSTGRES_PASSWORD: emision
+    ports:
+      - "5438:5432"
+    volumes:
+      - emision_postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U emision -d emision"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  emision_postgres_data:
